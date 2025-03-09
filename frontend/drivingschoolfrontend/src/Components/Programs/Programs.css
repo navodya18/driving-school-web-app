@@ -51,3 +51,44 @@
 .program p{
     max-width: 80%;
 }
+
+.program:hover .caption {
+    opacity: 1;
+    padding-top: 0; 
+}
+
+/*----media query-----*/
+
+@media (max-width : 650px){  /* This one add this for when we minimize the webpage create photo verticle.*/
+    .programs{
+        flex-direction: column;
+    }
+    .program{
+        flex-basis: 100%;
+        margin: 20px;
+        
+    }
+} 
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
