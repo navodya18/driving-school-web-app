@@ -1,9 +1,9 @@
 import React from 'react'
 import './Contact.css'
-import msg_icon from '../../assets/mail.png'
-import location_icon from '../../assets/location.png'
-import call_icon from '../../assets/call.png'
-import blue_arrow from '../../assets/blue-arrow.png'
+import msg_icon from '../../../assets/mail.png'
+import location_icon from '../../../assets/location.png'
+import call_icon from '../../../assets/call.png'
+import blue_arrow from '../../../assets/blue-arrow.png'
 
 
 
