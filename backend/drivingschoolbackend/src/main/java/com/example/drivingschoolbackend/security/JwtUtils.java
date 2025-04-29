@@ -34,6 +34,7 @@ public class JwtUtils {
     public String generateCustomerToken(Long customerId, String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "customer");
+        claims.put("role", "CUSTOMER");
         return buildToken(claims, email, expiration);
     }
 
@@ -74,5 +75,25 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
         return claimsResolver.apply(claims);
+    }
+
+    // Get role from token
+    public String getRoleFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("role", String.class);
+    }
+
+    // Get type from token (staff or customer)
+    public String getTypeFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("type", String.class);
     }
 }
