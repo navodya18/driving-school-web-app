@@ -1,22 +1,23 @@
 package com.example.drivingschoolbackend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
-@Entity
-@Table(name = "customers")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "customers")
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -29,10 +30,17 @@ public class Customer {
     private String lastName;
     private String phoneNumber;
     private String address;
-    private String nic; // National ID
+    private String nic;
     private String licenseNumber;
 
-    // Customer-specific timestamps
     private LocalDateTime registeredAt;
     private LocalDateTime lastActiveAt;
+
+    @ManyToMany(mappedBy = "enrolledCustomers")
+    @EqualsAndHashCode.Exclude
+    private Set<Session> enrolledSessions = new HashSet<>();
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @EqualsAndHashCode.Exclude
+    private Set<Enrollment> enrollments = new HashSet<>();
 }

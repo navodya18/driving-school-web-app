@@ -1,15 +1,25 @@
 import React from 'react';
 import LandingPage from './Pages/LandingPage';
 import Login from './Components/Login/Login';
+import CustomerRegister from './Components/Registration/CustomerRegister';
 import CustomerDashboard from './Components/Customer/CustomerDashboard';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './Components/ProtectedRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Layout from "./Components/Admin/routes/layout.jsx";
-import DashboardPage from "./Components/Admin/routes/dashboard/page.jsx";
-import Calendar from "./Components/Admin/calendar/calendar.jsx";
-import Customer from "./Components/Admin/customer/customer.jsx";
+
+// Import admin components
+import AdminLayout from "./Components/Admin/AdminLayout";
+import AdminDashboard from "./Components/Admin/AdminDashboard";
+import CustomersPage from "./Components/Admin/CustomersPage";
+import SessionsPage from "./Components/Admin/SessionsPage";
+import PaymentsPage from "./Components/Admin/PaymentsPage";
+import DocumentsPage from "./Components/Admin/DocumentsPage";
+import TrainingPage from "./Components/Admin/TrainingPage";
+import SettingsPage from "./Components/Admin/SettingsPage";
+import EnrollmentsPage from "./Components/Admin/EnrollmentsPage";
+import FeedbackPage from './Components/Admin/FeedbackPage';
+import ReportsPage from './Components/Admin/ReportsPage'; // Add this line
 
 const App = () => {
   return (
@@ -19,7 +29,7 @@ const App = () => {
         <Routes>
           <Route index element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/register" element={<Register />} /> Create Register component */}
+          <Route path="/customer/register" element={<CustomerRegister />} />
 
           {/* Protected Routes */}
           <Route path="/customer/dashboard" element={
@@ -28,20 +38,22 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/staff/dashboard" element={
+          {/* Admin Routes */}
+          <Route path="/staff" element={
             <ProtectedRoute>
-              <Layout /> {/* Replace AdminPage with Layout directly */}
+              <AdminLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<DashboardPage />} />
-            <Route path="analytics" element={<h1 className="title">Analytics</h1>} />
-            <Route path="customers" element={<Customer />} />
-            <Route path="new-customer" element={<h1 className="title">New Customer</h1>} />
-            <Route path="verified-customers" element={<h1 className="title">Verified Customers</h1>} />
-            <Route path="products" element={<h1 className="title">Products</h1>} />
-            <Route path="inventory" element={<h1 className="title">Inventory</h1>} />
-            <Route path="settings" element={<h1 className="title">Setting</h1>} />
-            <Route path="analytics/calendar" element={<Calendar />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="sessions" element={<SessionsPage />} />
+            <Route path="training" element={<TrainingPage />} />
+            <Route path="enrollments" element={<EnrollmentsPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
+            <Route path="documents" element={<DocumentsPage />} />
+            <Route path="reports" element={<ReportsPage />} /> {/* Add this line */}
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="feedback" element={<FeedbackPage />} />
           </Route>
         </Routes>
       </div>
