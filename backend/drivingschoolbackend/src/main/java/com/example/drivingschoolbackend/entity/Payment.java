@@ -6,34 +6,53 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Entity
+@Table(name = "payments")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-@Table
-
-
-
-
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class Payment {
 
     @Id
-    @SequenceGenerator(
-            name ="payment_sequence",
-            sequenceName ="payment_sequence",
-            allocationSize = 1
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "payment_sequence"
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "enrollment_id", nullable = false)
+    private Enrollment enrollment;
 
-    )
+    @Column(nullable = false)
+    private BigDecimal amount;
 
+    @Column(nullable = false)
+    private LocalDateTime paymentDate;
 
-    private int paymentId;
-    private int fullPayment;
-    private int currentPayment;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status;
+
+    private String description;
+
+    private String receiptNumber;
+
+    public enum PaymentMethod {
+        CASH,
+        CARD,
+        BANK_TRANSFER,
+        MOBILE_PAYMENT
+    }
+
+    public enum PaymentStatus {
+        COMPLETED,
+        PENDING,
+        CANCELLED
+    }
 }
