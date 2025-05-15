@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   FiHome, 
   FiUser, 
   FiShoppingCart, 
   FiSettings, 
   FiMessageSquare, 
-  FiBook 
+  FiBook,
+  FiLogOut 
 } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 import DashboardSection from "./DashboardSection";
 import ProfileSection from "./ProfileSection";
@@ -17,6 +20,31 @@ import SettingsSection from "./SettingsSection";
 
 export default function CustomerDashboard() {
   const [active, setActive] = useState("Dashboard");
+  const navigate = useNavigate();
+  
+  // Check if user is authenticated on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const userType = localStorage.getItem('userType');
+    
+    if (!token || userType !== 'customer') {
+      // Redirect to login if not authenticated as customer
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // Handle logout function
+  const handleLogout = () => {
+    // Clear authentication data from localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userType');
+    
+    // Show success message
+    toast.success('Successfully logged out!');
+    
+    // Redirect to login page
+    navigate('/login');
+  };
 
   // Navigation items
   const navItems = [
@@ -36,19 +64,29 @@ export default function CustomerDashboard() {
           <div className="flex items-center">
             <span className="text-xl font-bold">Tharuka Learners</span>
           </div>
-          <div className="flex space-x-1 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-600 pb-2">
-            {navItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => setActive(item.name)}
-                className={`flex items-center px-4 py-2 rounded-md transition-colors whitespace-nowrap ${
-                  active === item.name ? "bg-blue-600" : "hover:bg-blue-700"
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </button>
-            ))}
+          <div className="flex items-center">
+            <div className="flex space-x-1 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-600 pb-2 mr-4">
+              {navItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => setActive(item.name)}
+                  className={`flex items-center px-4 py-2 rounded-md transition-colors whitespace-nowrap ${
+                    active === item.name ? "bg-blue-600" : "hover:bg-blue-700"
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </button>
+              ))}
+            </div>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+            >
+              <FiLogOut className="mr-2" />
+              Logout
+            </button>
           </div>
         </div>
       </nav>

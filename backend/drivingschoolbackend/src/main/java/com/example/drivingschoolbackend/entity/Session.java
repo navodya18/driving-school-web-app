@@ -1,43 +1,72 @@
 package com.example.drivingschoolbackend.entity;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
-@Entity
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-@Table
-
-
-
-
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "sessions")
 public class Session {
-
     @Id
-    @SequenceGenerator(
-            name ="session_sequence",
-            sequenceName ="session_sequence",
-            allocationSize = 1
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    private SessionType type;
+
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+    @Enumerated(EnumType.STRING)
+    private SessionStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private LicenseType licenseType;
+
+    private String notes;
+    private int maxCapacity;
+    private boolean isAvailable;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "session_customers",
+            joinColumns = @JoinColumn(name = "session_id"),
+            inverseJoinColumns = @JoinColumn(name = "customer_id")
     )
+    @EqualsAndHashCode.Exclude
+    private Set<Customer> enrolledCustomers = new HashSet<>();
 
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "session_sequence"
+    public boolean hasCapacity() {
+        return enrolledCustomers.size() < maxCapacity;
+    }
 
-    )
+    public enum SessionType {
+        PRACTICAL,
+        THEORY,
+        TEST
+    }
 
+    public enum SessionStatus {
+        SCHEDULED,
+        IN_PROGRESS,
+        COMPLETED,
+        CANCELLED
+    }
 
-    private int sessionId;
-    private String sessionType;
-    private LocalDate date;
-    private LocalTime time;
+    public enum LicenseType {
+        MOTORCYCLE,
+        LIGHT_VEHICLE,
+        HEAVY_VEHICLE
+    }
 }

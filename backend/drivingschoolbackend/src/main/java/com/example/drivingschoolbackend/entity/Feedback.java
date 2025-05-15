@@ -1,39 +1,51 @@
 package com.example.drivingschoolbackend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Entity
+import com.example.drivingschoolbackend.entity.Users;
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-@Table
-
-
-
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "feedbacks")
 public class Feedback {
-
     @Id
-    @SequenceGenerator(
-            name ="feedback_sequence",
-            sequenceName ="feedback_sequence",
-            allocationSize = 1
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
 
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "feedback_sequence"
-
-    )
-
-
-    private int feedbackId;
+    @Column(nullable = false, length = 2000)
     private String comment;
-    private LocalDate date;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Rating rating;
+
+    private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    private Session session;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "instructor_id", nullable = false)
+    private Users instructor;
+
+    public enum Rating {
+        POOR,
+        FAIR,
+        GOOD,
+        VERY_GOOD,
+        EXCELLENT
+    }
 }
