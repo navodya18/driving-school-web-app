@@ -112,43 +112,14 @@ const AdminLayout = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <Box sx={{ position: 'absolute', left: 2, color: 'gray.400' }}>
-                    <FiSearch />
+                   
                   </Box>
-                  <InputBase 
-                    placeholder="Search..." 
-                    sx={{ 
-                      pl: 4,
-                      pr: 2,
-                      py: 1,
-                      ml: 0,
-                      width: '280px',
-                      backgroundColor: '#121829', // Dark search background from screenshot
-                      borderRadius: '4px',
-                      color: 'white',
-                      '& .MuiInputBase-input::placeholder': {
-                        color: 'gray.400',
-                        opacity: 1
-                      }
-                    }}
-                  />
+                  
                 </Box>
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <IconButton sx={{ color: 'gray.300', position: 'relative' }}>
-                  <FiBell />
-                  <Box 
-                    sx={{ 
-                      position: 'absolute', 
-                      top: '2px', 
-                      right: '2px', 
-                      width: '8px', 
-                      height: '8px', 
-                      borderRadius: '50%', 
-                      bgcolor: '#ef4444'
-                    }}
-                  />
-                </IconButton>
+                
                 
                 <IconButton 
                   onClick={colorMode.toggleColorMode}

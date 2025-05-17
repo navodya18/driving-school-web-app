@@ -51,7 +51,20 @@ public class CustomerService {
         customer.setAddress(customerUpdateDto.getAddress());
         customer.setNic(customerUpdateDto.getNic());
         customer.setLicenseNumber(customerUpdateDto.getLicenseNumber());
-        customer.setLastActiveAt(LocalDateTime.now());
+
+        // Update the status based on the isActive flag
+        if (customerUpdateDto.getIsActive() != null) {
+            if (customerUpdateDto.getIsActive()) {
+                // If active, update the timestamp
+                customer.setLastActiveAt(LocalDateTime.now());
+            } else {
+                // If inactive, set lastActiveAt to null
+                customer.setLastActiveAt(null);
+            }
+        } else {
+            // If status not provided, just update the timestamp as before
+            customer.setLastActiveAt(LocalDateTime.now());
+        }
 
         Customer updatedCustomer = customerRepository.save(customer);
         return convertToCustomerDto(updatedCustomer);
@@ -93,6 +106,7 @@ public class CustomerService {
         dto.setLicenseNumber(customer.getLicenseNumber());
         dto.setRegisteredAt(customer.getRegisteredAt());
         dto.setLastActiveAt(customer.getLastActiveAt());
+        dto.setIsActive(customer.getLastActiveAt() != null);
         return dto;
     }
 }

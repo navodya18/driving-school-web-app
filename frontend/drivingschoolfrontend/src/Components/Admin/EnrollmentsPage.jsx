@@ -23,9 +23,10 @@ import {
   Chip,
   ListSubheader,
   InputAdornment,
-  Autocomplete
+  Autocomplete,
+  Tooltip
 } from '@mui/material';
-import { FiPlus, FiEdit, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiSearch, FiAlertCircle } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import enrollmentService from '../../services/enrollmentService';
 import trainingService from '../../services/trainingService';
@@ -34,6 +35,7 @@ import customerService from '../../services/customerService';
 const EnrollmentsPage = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [activeCustomers, setActiveCustomers] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -74,6 +76,10 @@ const EnrollmentsPage = () => {
     try {
       const data = await customerService.getAllCustomers();
       setCustomers(data);
+      
+      // Filter active customers for new enrollments
+      const active = data.filter(customer => customer.isActive);
+      setActiveCustomers(active);
     } catch (error) {
       toast.error('Failed to load customers');
     }
@@ -206,6 +212,12 @@ const EnrollmentsPage = () => {
     return `${customer.firstName} ${customer.lastName} (${customer.email})`;
   };
 
+  // Check if customer is inactive in existing enrollment
+  const isCustomerInactive = (customerId) => {
+    const customer = customers.find(c => c.id === customerId);
+    return customer && !customer.isActive;
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -248,63 +260,78 @@ const EnrollmentsPage = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                enrollments.map((enrollment) => (
-                  <TableRow key={enrollment.id}>
-                    <TableCell>{enrollment.id}</TableCell>
-                    <TableCell>
-                      <Typography>{enrollment.customerName}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {enrollment.customerEmail}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{enrollment.programName}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={enrollmentService.getStatusDisplay(enrollment.status)}
-                        color={
-                          enrollment.status === 'COMPLETED'
-                            ? 'success'
-                            : enrollment.status === 'ACTIVE'
-                            ? 'primary'
-                            : enrollment.status === 'PENDING'
-                            ? 'warning'
-                            : 'error'
-                        }
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(enrollment.startDate)}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={enrollment.isPaid ? 'Paid' : 'Unpaid'}
-                        color={enrollment.isPaid ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="outlined"
+                enrollments.map((enrollment) => {
+                  const customerIsInactive = isCustomerInactive(enrollment.customerId);
+                  
+                  return (
+                    <TableRow 
+                      key={enrollment.id}
+                      sx={customerIsInactive ? { bgcolor: 'rgba(211, 47, 47, 0.08)' } : {}}
+                    >
+                      <TableCell>{enrollment.id}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Typography>{enrollment.customerName}</Typography>
+                          
+                          {customerIsInactive && (
+                            <Tooltip title="Inactive Student">
+                              <FiAlertCircle color="error" />
+                            </Tooltip>
+                          )}
+                        </Box>
+                        <Typography variant="body2" color="textSecondary">
+                          {enrollment.customerEmail}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{enrollment.programName}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={enrollmentService.getStatusDisplay(enrollment.status)}
+                          color={
+                            enrollment.status === 'COMPLETED'
+                              ? 'success'
+                              : enrollment.status === 'ACTIVE'
+                              ? 'primary'
+                              : enrollment.status === 'PENDING'
+                              ? 'warning'
+                              : 'error'
+                          }
                           size="small"
-                          color = "white"
-                          startIcon={<FiEdit />}
-                          onClick={() => handleOpenEditDialog(enrollment)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
+                        />
+                      </TableCell>
+                      <TableCell>{formatDate(enrollment.startDate)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={enrollment.isPaid ? 'Paid' : 'Unpaid'}
+                          color={enrollment.isPaid ? 'success' : 'error'}
                           size="small"
-                          startIcon={<FiTrash2 />}
-                          onClick={() => handleDelete(enrollment.id)}
-                        >
-                          Delete
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            color='white'
+                            size="small"
+                            startIcon={<FiEdit />}
+                            onClick={() => handleOpenEditDialog(enrollment)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<FiTrash2 />}
+                            onClick={() => handleDelete(enrollment.id)}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -316,14 +343,19 @@ const EnrollmentsPage = () => {
         <DialogTitle>{isEditing ? 'Edit Enrollment' : 'Create New Enrollment'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            {/* Customer Selection with Autocomplete (disabled for editing) */}
+            {/* Customer Selection with Autocomplete */}
             <Autocomplete
               disabled={isEditing}
-              options={customers}
+              options={isEditing ? customers : activeCustomers} // Use only active customers for new enrollments
               value={selectedCustomer}
               onChange={handleCustomerChange}
               getOptionLabel={getCustomerLabel}
               isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  {getCustomerLabel(option)}
+                </li>
+              )}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -343,7 +375,13 @@ const EnrollmentsPage = () => {
                 />
               )}
               fullWidth
+              noOptionsText="No active students found"
             />
+            {isEditing && selectedCustomer && !selectedCustomer.isActive && (
+              <Typography variant="caption" color="error" sx={{ mt: -1 }}>
+                Note: This student is currently inactive
+              </Typography>
+            )}
 
             {/* Program Selection (disabled for editing) */}
             <FormControl fullWidth disabled={isEditing}>

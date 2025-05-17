@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -10,7 +10,12 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState('customer'); // 'customer' or 'staff'
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
   const navigate = useNavigate();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -103,13 +108,20 @@ const Login = () => {
               <div className="relative">
                 <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 bg-transparent border-b border-black outline-none focus:ring-2 focus:ring-[#003366] shadow-sm"
+                  className="w-full pl-10 pr-10 py-2 bg-transparent border-b border-black outline-none focus:ring-2 focus:ring-[#003366] shadow-sm"
                   required
                 />
+                <button 
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
             </div>
 
@@ -122,29 +134,35 @@ const Login = () => {
               >
                 {isLoading ? 'Logging in...' : 'Log in'}
               </button>
-              <Link to={`/register/${userType}`}>
-                <button 
-                  type="button"
-                  className="w-full text-[#003366] border-2 border-[#003366] hover:bg-[#003366] hover:text-white transition-all duration-200 rounded-md p-4 mt-3"
-                >
-                  Register as {userType}
-                </button>
-              </Link>
+              
+              {/* Show Register button only for customers */}
+              {userType === 'customer' && (
+                <Link to="/customer/register">
+                  <button 
+                    type="button"
+                    className="w-full text-[#003366] border-2 border-[#003366] hover:bg-[#003366] hover:text-white transition-all duration-200 rounded-md p-4 mt-3"
+                  >
+                    Register as customer
+                  </button>
+                </Link>
+              )}
             </div>
           </form>
 
-          {/* Sign-up Link */}
-          <div className="w-full flex items-center justify-center mt-6">
-            <p className="text-sm font-normal text-[#060606]">
-              Don't have an account?
-              <Link 
-                to={`/register/${userType}`} 
-                className="font-semibold underline underline-offset-2 cursor-pointer ml-1 relative after:content-[''] after:absolute after:bg-[#003366] after:h-[2px] after:w-0 after:left-0 after:bottom-[-2px] hover:after:w-full after:transition-all after:duration-300"
-              >
-                Sign up as {userType}
-              </Link>
-            </p>
-          </div>
+          {/* Sign-up Link - Only show for customers */}
+          {userType === 'customer' && (
+            <div className="w-full flex items-center justify-center mt-6">
+              <p className="text-sm font-normal text-[#060606]">
+                Don't have an account?
+                <Link 
+                  to="/customer/register" 
+                  className="font-semibold underline underline-offset-2 cursor-pointer ml-1 relative after:content-[''] after:absolute after:bg-[#003366] after:h-[2px] after:w-0 after:left-0 after:bottom-[-2px] hover:after:w-full after:transition-all after:duration-300"
+                >
+                  Sign up as customer
+                </Link>
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

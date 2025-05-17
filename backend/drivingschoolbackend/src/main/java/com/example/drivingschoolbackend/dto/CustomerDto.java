@@ -19,6 +19,7 @@ public class CustomerDto {
     private String phoneNumber;
     private String address;
     private String nic;
+    private Boolean isActive;
     private String licenseNumber;
     private LocalDateTime registeredAt;
     private LocalDateTime lastActiveAt;

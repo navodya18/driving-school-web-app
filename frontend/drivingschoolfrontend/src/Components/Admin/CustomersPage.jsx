@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, TextField, useTheme } from '@mui/material';
+import { Box, Typography, Button, TextField, useTheme, IconButton } from '@mui/material';
 import { tokens } from '../../theme';
 import { DataGrid } from '@mui/x-data-grid';
-import { FiUserPlus, FiSearch, FiEdit2, FiTrash2, FiUser, FiPhone, FiMail } from 'react-icons/fi';
+import { FiUserPlus, FiSearch, FiEdit2, FiUser, FiPhone, FiMail } from 'react-icons/fi';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Use Font Awesome icons instead
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -26,6 +27,7 @@ const CustomersPage = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     firstName: '',
     lastName: '',
@@ -34,8 +36,13 @@ const CustomersPage = () => {
     email: '',
     address: '',
     licenseNumber: '',
-    status: 'Active'
+    status: 'Active',
+    password: ''
   });
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // Token for API authentication
   const getAuthToken = () => localStorage.getItem('authToken');
@@ -70,7 +77,8 @@ const CustomersPage = () => {
         licenseType: customer.licenseNumber ? 'Yes' : 'No',
         licenseNumber: customer.licenseNumber || '',
         registrationDate: new Date(customer.registeredAt).toISOString().split('T')[0],
-        status: customer.lastActiveAt ? 'Active' : 'Inactive'
+        status: customer.isActive ? 'Active' : 'Inactive',
+        isActive: customer.isActive
       }));
       
       setCustomers(formattedCustomers);
@@ -100,6 +108,7 @@ const CustomersPage = () => {
       password: '', // Required for registration
       status: 'Active'
     });
+    setShowPassword(false);
     setOpenAddDialog(true);
   };
 
@@ -139,10 +148,23 @@ const CustomersPage = () => {
   // Add new customer - Keep the registration endpoint the same
   const handleAddCustomer = async () => {
     try {
+      // Add isActive to the customer registration data
+      const registerData = {
+        firstName: newCustomer.firstName,
+        lastName: newCustomer.lastName,
+        nic: newCustomer.nic,
+        email: newCustomer.email,
+        password: newCustomer.password,
+        phoneNumber: newCustomer.phoneNumber,
+        address: newCustomer.address,
+        licenseNumber: newCustomer.licenseNumber,
+        isActive: newCustomer.status === 'Active'
+      };
+      
       // Registration endpoint remains the same
       const response = await axios.post(
         `${API_BASE_URL}/customers/auth/register`, 
-        newCustomer
+        registerData
       );
       
       toast.success('Customer added successfully');
@@ -154,7 +176,7 @@ const CustomersPage = () => {
     }
   };
 
-  // Update existing customer - Updated to use staff endpoint
+  // Update existing customer - Updated to use staff endpoint and include isActive
   const handleUpdateCustomer = async () => {
     try {
       const customerData = {
@@ -164,7 +186,8 @@ const CustomersPage = () => {
         phoneNumber: newCustomer.phoneNumber,
         email: newCustomer.email,
         address: newCustomer.address,
-        licenseNumber: newCustomer.licenseNumber
+        licenseNumber: newCustomer.licenseNumber,
+        isActive: newCustomer.status === 'Active' // Convert UI status to boolean
       };
       
       // Updated endpoint from /customers to /staff/customers
@@ -183,18 +206,25 @@ const CustomersPage = () => {
     }
   };
 
-  // Delete customer - Updated to use staff endpoint
-  const handleDeleteCustomer = async (id) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      try {
-        // Updated endpoint from /customers to /staff/customers
-        await axios.delete(`${API_BASE_URL}/staff/customers/${id}`, getHeaders());
-        toast.success('Customer deleted successfully');
-        fetchCustomers(); // Refresh the list
-      } catch (error) {
-        console.error('Error deleting customer:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete customer');
-      }
+  // Handle customer status toggle directly
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+      const customerData = {
+        isActive: newStatus === 'Active'
+      };
+      
+      await axios.put(
+        `${API_BASE_URL}/staff/customers/${id}/status`, 
+        customerData,
+        getHeaders()
+      );
+      
+      toast.success(`Customer status changed to ${newStatus}`);
+      fetchCustomers(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating customer status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update customer status');
     }
   };
 
@@ -206,7 +236,7 @@ const CustomersPage = () => {
     (customer.phone && customer.phone.toLowerCase().includes(searchText.toLowerCase()))
   );
 
-  // DataGrid columns
+  // DataGrid columns - Removed the delete action
   const columns = [
     { 
       field: 'name', 
@@ -257,6 +287,8 @@ const CustomersPage = () => {
             row.status === 'Active' ? colors.greenAccent[600] : colors.redAccent[600]
           }
           borderRadius="4px"
+          sx={{ cursor: 'pointer' }}
+          onClick={() => handleToggleStatus(row.id, row.status)}
         >
           <Typography color={colors.grey[100]}>
             {row.status}
@@ -267,7 +299,7 @@ const CustomersPage = () => {
     {
       field: 'actions',
       headerName: 'Actions',
-      flex: 1,
+      flex: 0.7,
       renderCell: ({ row }) => (
         <Box display="flex" gap="10px">
           <Button
@@ -278,15 +310,6 @@ const CustomersPage = () => {
             sx={{ minWidth: '30px', padding: '4px' }}
           >
             <FiEdit2 />
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            onClick={() => handleDeleteCustomer(row.id)}
-            sx={{ minWidth: '30px', padding: '4px' }}
-          >
-            <FiTrash2 />
           </Button>
         </Box>
       )
@@ -425,16 +448,33 @@ const CustomersPage = () => {
               onChange={handleInputChange}
               sx={{ gridColumn: "span 1" }}
             />
-            <TextField
-              fullWidth
-              variant="filled"
-              label="Password"
-              name="password"
-              type="password"
-              value={newCustomer.password}
-              onChange={handleInputChange}
-              sx={{ gridColumn: "span 1" }}
-            />
+            <Box sx={{ gridColumn: "span 1", position: "relative" }}>
+              <TextField
+                fullWidth
+                variant="filled"
+                label="Password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={newCustomer.password}
+                onChange={handleInputChange}
+                sx={{ width: "100%" }}
+              />
+              <IconButton 
+                onClick={togglePasswordVisibility}
+                sx={{ 
+                  position: "absolute", 
+                  right: "14px", 
+                  top: "14px", 
+                  color: colors.grey[400],
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    color: colors.grey[100]
+                  }
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </IconButton>
+            </Box>
             <TextField
               fullWidth
               variant="filled"
