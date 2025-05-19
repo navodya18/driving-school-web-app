@@ -173,12 +173,43 @@ const SessionsPage = () => {
 
   // Validate date is not in the past, within business hours (9 AM - 5 PM), and doesn't overlap with existing sessions
   // Validate date is not in the past, within business hours (9 AM - 5 PM), and doesn't overlap with existing sessions
+  // Modified validateSessionDates function to allow status updates for past sessions
+
   const validateSessionDates = () => {
     const now = new Date();
     const { startTime, endTime } = newSession;
 
-    // Rather than using isPast which checks with millisecond precision,
-    // we should compare dates with a small buffer or just compare the dates
+    // Special case: If we're in edit mode and the session is in the past,
+    // allow updating the status without date validation
+    if (editMode) {
+      const originalSession = sessions.find(
+        (session) => session.id === selectedSessionId
+      );
+
+      // If we're only changing the status of a past session, skip date validation
+      if (originalSession) {
+        const sessionEndTime = new Date(originalSession.endTime);
+        const isPastSession = sessionEndTime < now;
+
+        // If it's a past session and we're primarily updating the status
+        // (keeping the original times), then bypass the date validation
+        if (
+          isPastSession &&
+          newSession.status !== originalSession.status &&
+          startTime.getTime() ===
+            new Date(originalSession.startTime).getTime() &&
+          endTime.getTime() === new Date(originalSession.endTime).getTime()
+        ) {
+          console.log("Allowing status update for past session");
+          setFormError("");
+          return true;
+        }
+      }
+    }
+
+    // For new sessions or when changing dates of existing sessions,
+    // perform the regular validation:
+
     // Check if start time is in the past with a 1-minute buffer
     const oneMinuteBuffer = new Date(now.getTime() - 60000); // 1 minute buffer
     if (startTime < oneMinuteBuffer) {
@@ -720,7 +751,6 @@ const SessionsPage = () => {
         <Typography variant="h2" fontWeight="bold" color={colors.grey[100]}>
           Session Management
         </Typography>
-        
       </Box>
 
       {error && (
