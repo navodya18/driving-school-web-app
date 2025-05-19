@@ -15,7 +15,7 @@ const Navbar = () => {
     
     <ul>
         <li><ScrollLink to='hero' smooth={true} offset={0} duration={500}>Home</ScrollLink></li>
-        <li>Gallery</li>
+        
         <li><ScrollLink to='about' smooth={true} offset={-240} duration={500}>About Us</ScrollLink></li>
         <li><ScrollLink to='contact' smooth={true} offset={-250} duration={500}>Contact Us</ScrollLink></li>
         <Link to="/login"><li><button className='btn btn-apply'>Apply Now</button></li></Link>
